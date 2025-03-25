@@ -8,11 +8,11 @@
 		<version>3.4.0</version>
 		<relativePath/>
 	</parent>
-	<groupId>edutech</groupId>
-	<artifactId>edutech_backend</artifactId>
+	<groupId>startUp</groupId>
+	<artifactId>startup_backend</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>edutech_backend</name>
-	<description>edutech backend app</description>
+	<name>startUp_backend</name>
+	<description>startUp backend app</description>
 	<url/>
 	<licenses>
 		<license/>
