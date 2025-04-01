@@ -8,6 +8,7 @@ import io.jsonwebtoken.Jwts;
 import startup.backend.dto.ApiResponse;
 import startup.backend.dto.LoginRequest;
 import startup.backend.dto.SignupRequest;
+import startup.backend.dto.*;
 import startup.backend.entity.*;
 import startup.backend.exception.CustomException;
 import startup.backend.repository.RoleRepository;
@@ -19,16 +20,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.authentication.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.*;
@@ -55,20 +52,18 @@ public class AuthServiceImpl implements AuthService {
     public ApiResponse<Map<String, String>> registerUser(SignupRequest signupRequest) {
         log.info("Initiating user registration process for username: {}", signupRequest.getUsername());
 
-        // Check if the user already exists
+        // Duplicate checks
         if (userRepository.existsByEmail(signupRequest.getEmail())) {
-            log.warn("Registration failed due to duplicate email: {}", signupRequest.getEmail());
             throw new CustomException(MessageConstant.EMAIL_IS_ALREADY_IN_USE);
         }
         if (userRepository.existsByUsername(signupRequest.getUsername())) {
-            log.warn("Registration failed due to duplicate username: {}", signupRequest.getUsername());
             throw new CustomException(MessageConstant.USERNAME_ALREADY_IN_USE);
         }
         if (userRepository.existsByMobileNo(signupRequest.getMobile_no())) {
-            log.warn("Registration failed due to duplicate mobile number: {}", signupRequest.getMobile_no());
             throw new CustomException(MessageConstant.MOBILENO_IS_ALREADY_IN_USE);
         }
 
+        // Create user
         User user = new User();
         user.setFirstName(signupRequest.getFirstName());
         user.setLastName(signupRequest.getLastName());
@@ -82,18 +77,16 @@ public class AuthServiceImpl implements AuthService {
 
         Set<Role> userRoles = resolveRoles(signupRequest);
         user.setRoles(userRoles);
-        log.debug("Assigning roles to the user: {}", userRoles);
 
         userRepository.save(user);
         log.info("User registered successfully: {}", user.getUsername());
 
         Map<String, String> tokens = generateTokens(user);
-
         return ApiResponse.successWithTokens(MessageConstant.USER_REGISTERED_SUCCESSFULLY, tokens, HttpStatus.CREATED.value());
     }
 
     private Set<Role> resolveRoles(SignupRequest signupRequest) {
-        log.debug("Resolving roles for new user with username: {}", signupRequest.getUsername());
+        log.debug("Resolving roles for user: {}", signupRequest.getUsername());
 
         Set<Role> roles = Optional.ofNullable(signupRequest.getRole())
                 .orElse(Collections.emptySet())
@@ -103,23 +96,28 @@ public class AuthServiceImpl implements AuthService {
                     try {
                         roleEnum = RoleName.valueOf(roleName.toUpperCase());
                     } catch (IllegalArgumentException e) {
-                        log.error("Invalid role name provided for user '{}': {}", signupRequest.getUsername(), roleName, e);
                         throw new CustomException(MessageConstant.INVALID_ROLE + ": " + roleName);
                     }
                     return roleRepository.findByName(roleEnum)
-                            .orElseThrow(() -> new CustomException("Role not found: " + roleName));
+                            .orElseGet(() -> createRoleIfNotFound(roleEnum));
                 })
                 .collect(Collectors.toSet());
 
         if (roles.isEmpty()) {
-            log.warn("No roles provided in the signup request. Assigning default user role.");
-            roles = Set.of(
-                    roleRepository.findByName(RoleName.ROLE_USER)
-                            .orElseThrow(() -> new CustomException(MessageConstant.DEFAULT_ROLE_NOT_FOUND))
-            );
+            log.warn("No roles provided. Assigning default ROLE_USER.");
+            Role defaultRole = roleRepository.findByName(RoleName.ROLE_USER)
+                    .orElseGet(() -> createRoleIfNotFound(RoleName.ROLE_USER));
+            roles = Set.of(defaultRole);
         }
 
         return roles;
+    }
+
+    private Role createRoleIfNotFound(RoleName roleName) {
+        log.info("Role '{}' not found. Creating default role.", roleName);
+        Role newRole = new Role();
+        newRole.setName(roleName);
+        return roleRepository.save(newRole);
     }
 
     @Override
@@ -128,7 +126,6 @@ public class AuthServiceImpl implements AuthService {
                 .orElse(Optional.ofNullable(loginRequest.getEmail())
                         .orElse(loginRequest.getMobile_no()));
 
-        log.debug("Authenticating user with identifier: {}", identifier);
         if (isNullOrEmpty(identifier)) {
             throw new CustomException(MessageConstant.INVALID_USERNAME_OR_PASSWORD, HttpStatus.BAD_REQUEST, "INVALID_CREDENTIALS");
         }
@@ -138,31 +135,24 @@ public class AuthServiceImpl implements AuthService {
                     new UsernamePasswordAuthenticationToken(identifier, loginRequest.getPassword())
             );
 
-            log.info("User authenticated successfully: {}", authentication.getName());
-
             User user = userRepository.findByUsername(authentication.getName())
                     .orElseThrow(() -> new CustomException(MessageConstant.INVALID_USERNAME_OR_PASSWORD, HttpStatus.NOT_FOUND, "USER_NOT_FOUND"));
 
             Map<String, String> tokens = generateTokens(user);
-
             tokens.put("role", user.getRoles().stream()
                     .map(role -> role.getName().name())
                     .findFirst().orElse("ROLE_USER"));
 
             return ApiResponse.successWithTokens("Authentication successful", tokens, HttpStatus.OK.value());
         } catch (BadCredentialsException e) {
-            log.error("Invalid credentials for identifier: {}", identifier);
             throw new CustomException(MessageConstant.INVALID_USERNAME_EMAIL_MOBILE, HttpStatus.UNAUTHORIZED, "INVALID_CREDENTIALS");
         } catch (Exception ex) {
-            log.error("An unexpected error occurred during authentication for identifier: {}", identifier, ex);
             throw new CustomException(MessageConstant.AUTHENTICATION_FAILED_DUE_TO_SERVER_ERROR_TRY_AGAIN_LATER, HttpStatus.INTERNAL_SERVER_ERROR, "AUTH_ERROR");
         }
     }
 
     @Override
     public ApiResponse<Map<String, String>> refreshAccessToken(String refreshToken) {
-        log.info("Refreshing access token using refresh token: {}", refreshToken);
-
         if (Objects.isNull(refreshToken) || refreshToken.trim().isEmpty()) {
             throw new CustomException(MessageConstant.REFRESH_TOKEN_CANNOT_BE_NULL_OR_EMPTY);
         }
@@ -186,7 +176,6 @@ public class AuthServiceImpl implements AuthService {
     }
 
     private Map<String, String> generateTokens(User user) {
-        // Generate the tokens
         String accessToken = jwtTokenUtil.generateToken(user.getUsername(), user.getUserId(), user.getRoles());
         String refreshToken = refreshTokenServiceImpl.createRefreshToken(user).getToken();
 
@@ -218,15 +207,13 @@ public class AuthServiceImpl implements AuthService {
                     newUser.setPassword(UUID.randomUUID().toString());
 
                     Role userRole = roleRepository.findByName(RoleName.ROLE_USER)
-                            .orElseThrow(() -> new CustomException("Role ROLE_USER not found"));
+                            .orElseGet(() -> createRoleIfNotFound(RoleName.ROLE_USER));
 
-                    // Set the user's roles
-                    newUser.setRoles(Set.of(userRole)); // Setting roles as a Set
+                    newUser.setRoles(Set.of(userRole));
                     return userRepository.save(newUser);
                 });
 
         Map<String, String> tokens = generateTokens(user);
-
         return ApiResponse.successWithTokens("Authentication Successful", tokens, 200);
     }
 
@@ -236,7 +223,7 @@ public class AuthServiceImpl implements AuthService {
         try {
             GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(
                     new NetHttpTransport(), JacksonFactory.getDefaultInstance())
-                    .setAudience(Collections.singletonList(googleClientId)) // Replace with actual Client ID
+                    .setAudience(Collections.singletonList(googleClientId))
                     .build();
 
             GoogleIdToken googleIdToken = verifier.verify(idToken);
@@ -245,8 +232,6 @@ public class AuthServiceImpl implements AuthService {
             }
 
             GoogleIdToken.Payload payload = googleIdToken.getPayload();
-            System.out.println("Google Token Payload: " + payload); // Debugging line
-
             String email = payload.getEmail();
             String fullName = (String) payload.get("name");
             String picture = (String) payload.get("picture");
@@ -262,26 +247,20 @@ public class AuthServiceImpl implements AuthService {
     }
 
     public byte[] convertImageUrlToBytes(String imageUrl) throws IOException {
-        // Create a URL object from the image URL string
         URL url = new URL(imageUrl);
-
-        // Open a connection to the URL
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setRequestMethod("GET");
 
-        // Open an InputStream to read the image
         try (InputStream in = connection.getInputStream();
              ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream()) {
 
             byte[] buffer = new byte[4096];
             int bytesRead;
 
-            // Read the image data in chunks and write it to the ByteArrayOutputStream
             while ((bytesRead = in.read(buffer)) != -1) {
                 byteArrayOutputStream.write(buffer, 0, bytesRead);
             }
 
-            // Return the byte array of the image
             return byteArrayOutputStream.toByteArray();
         }
     }
