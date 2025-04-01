@@ -1,5 +1,7 @@
 package startup.backend.service;
 
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import startup.backend.dto.UserDto;
 import startup.backend.entity.User;
 import startup.backend.exception.CustomException;
@@ -45,6 +47,15 @@ import org.springframework.web.multipart.MultipartFile;
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new CustomException(MessageConstant.USER_NOT_FOUND_WITH_ID + id));
         return convertToDto(user);
+    }
+
+    public UserDto getUserProfile() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+        System.out.println(username);
+        User u= userRepository.findByUsername(username).orElseThrow(() -> new RuntimeException("User not found"));
+        System.out.println(u);
+        return convertToDto(u);
     }
 
     @Transactional
@@ -142,6 +153,9 @@ import org.springframework.web.multipart.MultipartFile;
         userDto.setUsername(user.getUsername());
         userDto.setEmail(user.getEmail());
         userDto.setMobile_no(user.getMobileNo());
+        userDto.setLocation(user.getLocation());
+        userDto.setBio(user.getBio());
+        userDto.setCreatedAt(user.getCreatedAt());
         userDto.setRoles(user.getRoles().stream()
                 .map(role -> role.getName().name())
                 .collect(Collectors.toSet()));

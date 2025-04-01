@@ -4,6 +4,7 @@ import startup.backend.dto.ApiResponse;
 import startup.backend.dto.ForgotPasswordRequest;
 import startup.backend.dto.ForgotPasswordReset;
 import startup.backend.dto.UserDto;
+import startup.backend.entity.User;
 import startup.backend.service.UserServiceImpl;
 import startup.backend.util.MessageConstant;
 import lombok.RequiredArgsConstructor;
@@ -79,6 +80,14 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(ApiResponse.error("Error deleting user: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR.value()));
         }
+    }
+
+    @GetMapping("/profile")
+    public ResponseEntity<UserDto> getUserProfile(){
+
+        System.out.println("Profile is called");
+        UserDto u = userServiceImpl.getUserProfile();
+        return new  ResponseEntity<UserDto>(u,HttpStatus.OK);
     }
 
     @GetMapping("/user-counts")

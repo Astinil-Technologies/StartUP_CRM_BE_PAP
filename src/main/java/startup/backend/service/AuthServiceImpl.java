@@ -4,6 +4,7 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.jackson2.JacksonFactory;
+import io.jsonwebtoken.Jwts;
 import startup.backend.dto.ApiResponse;
 import startup.backend.dto.LoginRequest;
 import startup.backend.dto.SignupRequest;
@@ -75,6 +76,9 @@ public class AuthServiceImpl implements AuthService {
         user.setEmail(signupRequest.getEmail());
         user.setMobileNo(signupRequest.getMobile_no());
         user.setPassword(passwordEncoder.encode(signupRequest.getPassword()));
+        user.setLocation(signupRequest.getLocation());
+        user.setBio(signupRequest.getBio());
+        user.setCreatedAt(signupRequest.getCreatedAt());
 
         Set<Role> userRoles = resolveRoles(signupRequest);
         user.setRoles(userRoles);
@@ -225,6 +229,8 @@ public class AuthServiceImpl implements AuthService {
 
         return ApiResponse.successWithTokens("Authentication Successful", tokens, 200);
     }
+
+
 
     public GoogleUser verifyGoogleToken(String idToken) {
         try {

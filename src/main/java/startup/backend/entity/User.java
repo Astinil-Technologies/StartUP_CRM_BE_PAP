@@ -9,6 +9,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+
+import java.time.LocalDateTime;
 import java.util.Set;
 
 @Entity
@@ -43,6 +45,20 @@ public class User {
     @Lob
     @Column(name = "profile_image", columnDefinition = "LONGBLOB")
     private byte[] profileImage;
+
+    private String bio;
+
+    private String location;
+
+    @Column(nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    @PrePersist
+    protected void onCreate() {
+        this.createdAt = LocalDateTime.now();
+    }
+
+
     public Integer getUserId() {
         return id.intValue();
     }
