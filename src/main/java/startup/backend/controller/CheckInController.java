@@ -9,6 +9,9 @@ import startup.backend.dto.CheckInDto;
 import startup.backend.dto.StatusDto;
 import startup.backend.service.CheckInService;
 
+
+
+
 @RestController
 @RequestMapping("/api/checkin")
 @RequiredArgsConstructor
