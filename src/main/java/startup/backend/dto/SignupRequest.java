@@ -1,6 +1,8 @@
 package startup.backend.dto;
 import lombok.Builder;
 import lombok.Data;
+
+import java.time.LocalDateTime;
 import java.util.Set;
 import java.util.HashSet;
 import jakarta.validation.constraints.NotNull;
@@ -27,7 +29,11 @@ public class SignupRequest {
     @NotNull(message = "Mobile number is required")
     @NotEmpty(message = "Mobile number cannot be empty")
     private String mobile_no;
+    private String bio;
+    private String location;
+    private LocalDateTime createdAt;
     private Set<String> role;
+
 
     public Set<String> getRole() {
         return (role != null) ? role : new HashSet<>();

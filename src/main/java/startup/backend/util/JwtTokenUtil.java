@@ -53,6 +53,9 @@ public class JwtTokenUtil {
         }
     }
 
+    public Long getUserIdFromToken(String token) {
+        return extractAllClaims(token).get("userId", Long.class); // ✅ Extract userId claim
+    }
 
     public Date extractExpiration(String token) {
         try {
@@ -62,7 +65,6 @@ public class JwtTokenUtil {
             throw new JwtTokenException("Failed to extract expiration from the token: " + e.getMessage(), e);
         }
     }
-
 
     public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
         final Claims claims = extractAllClaims(token);
@@ -115,7 +117,6 @@ public class JwtTokenUtil {
                 .signWith(secretKey, SignatureAlgorithm.HS256)
                 .compact();
     }
-
 
     public Boolean validateToken(String token, String username) {
         try {
