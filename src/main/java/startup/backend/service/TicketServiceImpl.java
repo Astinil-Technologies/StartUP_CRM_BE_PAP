@@ -1,118 +1,93 @@
 package startup.backend.service;
 
-
-import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.context.config.ConfigDataResourceNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import startup.backend.dto.TicketDto;
 import startup.backend.entity.Ticket;
-import startup.backend.exception.ResourceNotFoundException;
 import startup.backend.repository.TicketRepository;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@Transactional
 public class TicketServiceImpl implements TicketService {
 
-    @Autowired
-    private TicketRepository ticketRepository;
+    private final TicketRepository ticketRepository;
 
-
-    @Autowired
-    private  ModelMapper modelMapper;
-
-    // ✅ Convert DTO to Entity
-    private Ticket convertToEntity(TicketDto ticketDTO) {
-        return modelMapper.map(ticketDTO, Ticket.class);
-    }
-
-    // ✅ Convert Entity to DTO
-    private TicketDto convertToDTO(Ticket ticket) {
-        return modelMapper.map(ticket, TicketDto.class);
+    public TicketServiceImpl(TicketRepository ticketRepository) {
+        this.ticketRepository = ticketRepository;
     }
 
     @Override
     public TicketDto createTicket(TicketDto ticketDto) {
-          Ticket ticket = new Ticket();
+        Ticket ticket = Ticket.builder()
+                .title(ticketDto.getTitle())
+                .description(ticketDto.getDescription())
+                .priority(ticketDto.getPriority())
+                .status(ticketDto.getStatus())
+                .assignedUserId(ticketDto.getAssignedUserId())
+                .createdBy(ticketDto.getCreatedBy())
+                .build();
 
-          ticket =convertToEntity(ticketDto);
+        ticket.setStatus(Ticket.Status.valueOf("OPEN"));
 
-        if (ticket.getTitle() == null || ticket.getTitle().isEmpty()) {
-            throw new IllegalArgumentException("Title cannot be empty.");
-        }
-
-        ticket.setStatus(Ticket.Status.OPEN);
-
-        return convertToDTO(ticketRepository.save(ticket));
+        ticket = ticketRepository.save(ticket);
+        return mapToDto(ticket);
     }
 
     @Override
     public List<TicketDto> getAllTickets() {
-        List<Ticket>tickets = ticketRepository.findAll();
-        List<TicketDto>ticketDto=tickets.stream().map(ticket -> this.convertToDTO(ticket)).collect(Collectors.toList());
-        return ticketDto;
-    }
-
-    @Override
-    public List<TicketDto> getTicketsByUserId(Long userId) {
-
-        List<Ticket>tickets = ticketRepository.findByAssignedUserId(userId);
-        List<TicketDto>ticketDto=tickets.stream().map(ticket -> this.convertToDTO(ticket)).collect(Collectors.toList());
-        return ticketDto;
-
-    }
-
-    @Override
-    public List<TicketDto> searchTickets(String query) {
-
-        List<Ticket>tickets = ticketRepository.searchTickets(query);
-        List<TicketDto>ticketDto=tickets.stream().map(ticket -> this.convertToDTO(ticket)).collect(Collectors.toList());
-        return ticketDto;
+        return ticketRepository.findAll().stream().map(this::mapToDto).collect(Collectors.toList());
     }
 
     @Override
     public TicketDto getTicketById(Long id) {
-
-          Ticket ticket = ticketRepository.findById(id)
-                  .orElseThrow(() -> new ResourceNotFoundException("Ticket not found with ID: " + id));
-        return convertToDTO(ticket);
+        Ticket ticket = ticketRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Ticket not found"));
+        return mapToDto(ticket);
     }
 
     @Override
-    public TicketDto updateTicket(Long id, TicketDto updatedTicket) {
+    public List<TicketDto> getTicketsByUserId(Long userId) {
+        return ticketRepository.findByCreatedBy(userId).stream().map(this::mapToDto).collect(Collectors.toList());
+    }
 
-        TicketDto existingTicket = getTicketById(id);
+    @Override
+    public List<TicketDto> searchTickets(String query) {
+        return ticketRepository.findByTitleContainingIgnoreCaseOrDescriptionContainingIgnoreCase(query, query)
+                .stream().map(this::mapToDto).collect(Collectors.toList());
+    }
 
-        if (updatedTicket.getTitle() != null) {
-            existingTicket.setTitle(updatedTicket.getTitle());
-        }
-        if (updatedTicket.getDescription() != null) {
-            existingTicket.setDescription(updatedTicket.getDescription());
-        }
-        if (updatedTicket.getPriority() != null) {
-            existingTicket.setPriority(updatedTicket.getPriority());
-        }
-        if (updatedTicket.getStatus() != null) {
-            existingTicket.setStatus(updatedTicket.getStatus());
-        }
+    @Override
+    public TicketDto updateTicket(Long id, TicketDto ticketDto) {
+        Ticket ticket = ticketRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Ticket not found"));
 
+        ticket.setTitle(ticketDto.getTitle());
+        ticket.setDescription(ticketDto.getDescription());
+        ticket.setPriority(ticketDto.getPriority());
+        ticket.setStatus(ticketDto.getStatus());
+        ticket.setAssignedUserId(ticketDto.getAssignedUserId());
 
-          Ticket t =convertToEntity(existingTicket);
-           ticketRepository.save(t);
-
-           return convertToDTO(t);
-
-
-
+        return mapToDto(ticketRepository.save(ticket));
     }
 
     @Override
     public void deleteTicket(Long id) {
-        TicketDto ticket = getTicketById(id);
-        Ticket t =convertToEntity(ticket);
-        ticketRepository.delete(t);
+        ticketRepository.deleteById(id);
+    }
+
+    private TicketDto mapToDto(Ticket ticket) {
+        return new TicketDto(
+                ticket.getId(),
+                ticket.getTitle(),
+                ticket.getDescription(),
+                ticket.getPriority(),
+                ticket.getStatus(),
+                ticket.getAssignedUserId(),
+                ticket.getCreatedBy(),
+                ticket.getCreatedTimestamp()
+        );
     }
 }

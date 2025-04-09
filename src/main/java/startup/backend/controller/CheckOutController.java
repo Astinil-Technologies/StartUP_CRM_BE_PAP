@@ -12,7 +12,7 @@ import startup.backend.service.CheckOutService;
 @RestController
 @RequestMapping("/api/checkout")
 @RequiredArgsConstructor
-public class CheckOutController {
+public class CheckOutController{
     private final CheckOutService checkOutService;
 
     @PostMapping

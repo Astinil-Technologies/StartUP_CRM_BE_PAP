@@ -53,6 +53,10 @@ public class JwtTokenUtil {
         }
     }
 
+    public Long getUserIdFromToken(String token) {
+        return extractAllClaims(token).get("userId", Long.class); // ✅ Extract userId claim
+    }
+
     public Date extractExpiration(String token) {
         try {
             return extractClaim(token, Claims::getExpiration);

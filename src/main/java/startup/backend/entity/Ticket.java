@@ -1,20 +1,15 @@
 package startup.backend.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
+import lombok.*;
 import java.time.LocalDateTime;
 
-
 @Entity
+@Table(name = "tickets")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Table(name = "tickets")
 public class Ticket {
 
     @Id
@@ -31,11 +26,17 @@ public class Ticket {
     private Priority priority;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    //@Column(nullable = false)
     private Status status;
 
     @Column(name = "assigned_user_id", nullable = false)
     private Long assignedUserId;
+
+    @Column(name = "created_by", nullable = false)
+    private Long createdBy; // Stores the ID of the user who created the ticket
+
+    @Version
+    private Integer version;  // Helps with concurrency control
 
     @Column(updatable = false)
     private LocalDateTime createdTimestamp;
