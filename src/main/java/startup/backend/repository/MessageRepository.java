@@ -14,4 +14,9 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
     List<Message> findMessagesByRecipientOrGroup(@Param("recipientUserId") Long recipientUserId,
                                                  @Param("groupId") Long groupId,
                                                  Pageable pageable);
+
+    // ✅ Support for direct one-to-one chat check (bidirectional)
+    boolean existsBySender_IdAndRecipient_Id(Long senderId, Long recipientId);
+
+    boolean existsByRecipient_IdAndSender_Id(Long recipientId, Long senderId);
 }

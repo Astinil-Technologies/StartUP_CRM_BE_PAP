@@ -35,4 +35,38 @@ public class Message {
     @ManyToOne
     @JoinColumn(name = "group_id")
     private ChatGroup group;
+
+
+    @Column(name = "is_deleted", nullable = false)
+    private boolean isDeleted;
+
+
+    @Builder
+    public Message(Long id, User sender, User recipient, ChatGroup group, String content, Instant timestamp, boolean isDeleted) {
+        this.id = id;
+        this.sender = sender;
+        this.recipient = recipient;
+        this.group = group;
+        this.content = content;
+        this.timestamp = timestamp;
+        this.isDeleted = isDeleted;
+    }
+
+
+
+    //for file upload
+    @Column(name = "file_name")
+    private String fileName;
+
+    @Column(name = "file_type")
+    private String fileType;
+
+    @Column(name = "file_url")
+    private String fileUrl;
+
+    @Column(name = "file_size")
+    private Long fileSize;
+
+
+
 }

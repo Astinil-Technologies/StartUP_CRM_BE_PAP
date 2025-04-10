@@ -27,6 +27,6 @@ public class ChatGroup {
             joinColumns = @JoinColumn(name = "group_id"),
             inverseJoinColumns = @JoinColumn(name = "user_id")
     )
-    private Set<User> members; // Ensure this is a Set, not a List
+    private Set<User> members; // ✅ Keep as is — no renaming
 
 }

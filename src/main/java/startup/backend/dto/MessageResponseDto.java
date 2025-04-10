@@ -18,4 +18,24 @@ public class MessageResponseDto {
         this.content = content;
         this.timestamp = timestamp;
     }
+
+
+    private String fileName;
+    private String fileType;
+    private String fileUrl;
+    private Long fileSize;
+
+    public MessageResponseDto(Long id, Long id1, Long recipientId, String content, String format, String fileName, String fileType, String fileUrl, Long fileSize) {
+    this.messageId = id;
+    this.senderId = id1;
+    this.recipientId = recipientId;
+    this.content = content;
+
+    this.timestamp = format;
+    this.fileName = fileName;
+    this.fileType = fileType;
+    this.fileUrl = fileUrl;
+    this.fileSize = fileSize;
+
+    }
 }

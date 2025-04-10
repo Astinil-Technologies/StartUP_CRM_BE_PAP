@@ -3,6 +3,7 @@ package startup.backend.dto;
 import lombok.Data;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import org.springframework.web.multipart.MultipartFile;
 
 @Data
 public class MessageDto {
@@ -16,4 +17,8 @@ public class MessageDto {
 
     @NotBlank(message = "Message content cannot be blank")
     private String content; // Content of the message
+
+
+    private MultipartFile file;
+
 }
