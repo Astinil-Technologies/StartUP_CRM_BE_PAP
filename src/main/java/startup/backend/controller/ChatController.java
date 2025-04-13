@@ -8,10 +8,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.web.multipart.MultipartFile;
-import startup.backend.dto.ApiResponse;
-import startup.backend.dto.MessageDto;
-import startup.backend.dto.MessageResponseDto;
-import startup.backend.dto.TypingIndicatorDto;
+import startup.backend.dto.*;
 import startup.backend.entity.Message;
 import startup.backend.service.MessageService;
 import startup.backend.dto.TypingIndicatorDto;
@@ -29,21 +26,42 @@ public class ChatController {
     private final MessageService messageService;
     private final SimpMessagingTemplate messagingTemplate;  // ✅ Injected WebSocket template
 
-    // 🔹 Send a Message
     @PostMapping
-    public ResponseEntity<MessageResponseDto> sendMessage(@RequestBody MessageDto messageDto) {
-        MessageResponseDto response = messageService.sendMessage(messageDto);
+    public ResponseEntity<SimpleMessageResponseDto> sendMessage(@RequestBody MessageDto messageDto) {
+        MessageResponseDto fullResponse = messageService.sendMessage(messageDto);
+
+        SimpleMessageResponseDto response = SimpleMessageResponseDto.builder()
+                .messageId(fullResponse.getMessageId())
+                .senderId(fullResponse.getSenderId())
+                .recipientId(fullResponse.getRecipientId())
+                .content(fullResponse.getContent())
+                .timestamp(fullResponse.getTimestamp())
+                .build();
+
         return ResponseEntity.ok(response);
     }
 
+
     // 🔹 Retrieve Chat History
     @GetMapping("/{conversationId}")
-    public ResponseEntity<List<MessageResponseDto>> getMessages(
+    public ResponseEntity<List<SimpleMessageResponseDto>> getMessages(
             @PathVariable Long conversationId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
-        List<MessageResponseDto> messages = messageService.getMessages(conversationId, PageRequest.of(page, size));
-        return ResponseEntity.ok(messages);
+
+        List<MessageResponseDto> fullMessages = messageService.getMessages(conversationId, PageRequest.of(page, size));
+
+        List<SimpleMessageResponseDto> simplifiedMessages = fullMessages.stream()
+                .map(msg -> SimpleMessageResponseDto.builder()
+                        .messageId(msg.getMessageId())
+                        .senderId(msg.getSenderId())
+                        .recipientId(msg.getRecipientId())
+                        .content(msg.getContent())
+                        .timestamp(msg.getTimestamp())
+                        .build())
+                .toList();
+
+        return ResponseEntity.ok(simplifiedMessages);
     }
 
     // 🔹 Soft Delete
@@ -73,6 +91,8 @@ public class ChatController {
             );
         }
     }
+
+
 
     @PostMapping("/upload")
     public ResponseEntity<ApiResponse<MessageResponseDto>> uploadFileMessage(

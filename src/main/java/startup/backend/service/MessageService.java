@@ -18,6 +18,7 @@ import java.nio.file.*;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -31,6 +32,8 @@ public class MessageService {
     private final MessageRepository messageRepository;
     private final UserRepository userRepository;
     private final ChatGroupRepository chatGroupRepository;
+    private final ChatNotificationService chatNotificationService;
+
 
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssX")
             .withZone(ZoneId.of("Asia/Kolkata")); // Indian Standard Time
@@ -51,11 +54,31 @@ public class MessageService {
                 .group(group)
                 .content(messageDto.getContent())
                 .timestamp(Instant.now())
-                .isDeleted(false) // ✅ Add this
+                .isDeleted(false)
                 .build();
 
-
         Message savedMessage = messageRepository.save(message);
+
+        // ✅ Notification Logic
+        List<Long> recipientIds = new ArrayList<>();
+        if (savedMessage.getRecipient() != null) {
+            // One-to-One Chat
+            recipientIds.add(savedMessage.getRecipient().getId());
+        } else if (savedMessage.getGroup() != null) {
+            // Group Chat
+            recipientIds = savedMessage.getGroup().getMembers()
+                    .stream()
+                    .map(User::getId)
+                    .filter(id -> !id.equals(savedMessage.getSender().getId()))
+                    .collect(Collectors.toList());
+        }
+
+        // ✅ Call the notification service
+        chatNotificationService.generateNotifications(
+                savedMessage.getId(),
+                savedMessage.getSender().getId(),
+                recipientIds
+        );
 
         return new MessageResponseDto(
                 savedMessage.getId(),
@@ -65,6 +88,8 @@ public class MessageService {
                 FORMATTER.format(savedMessage.getTimestamp())
         );
     }
+
+
 
 
     // ✅ Get chat history
