@@ -35,6 +35,9 @@ private String message;
  */
 private ResponseType data;
 
+    public ApiResponse(int code, MessageResponseDto responseDto, boolean b, String messageSent) {
+    }
+
 
     /**
      * Static factory method to create an error response.
