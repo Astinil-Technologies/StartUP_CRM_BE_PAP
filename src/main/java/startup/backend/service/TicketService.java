@@ -9,14 +9,6 @@ import startup.backend.entity.Ticket;
 import java.util.List;
 
 public interface TicketService {
-//    TicketDto createTicket(TicketDto ticketDto);
-//    List<TicketDto> getAllTickets();
-//    TicketDto getTicketById(Long id);
-//    List<TicketDto> getTicketsByUserId(Long userId);
-//    List<TicketDto> searchTickets(String query);
-//    TicketDto updateTicket(Long id, TicketDto ticketDto);
-//    void deleteTicket(Long id);
-
 
     TicketDto createTicket(TicketDto ticketDto);
     Page<TicketDto> getAllTickets(Pageable pageable);

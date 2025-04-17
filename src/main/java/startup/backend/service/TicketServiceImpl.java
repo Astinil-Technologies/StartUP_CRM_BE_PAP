@@ -46,14 +46,6 @@ public class TicketServiceImpl implements TicketService {
     }
 
 
-//
-//    @Override
-//    public List<TicketDto> getAllTickets() {
-//        return ticketRepository.findAll().stream().map(this::mapToDto).collect(Collectors.toList());
-//    }
-
-
-
     @Override
     public TicketDto getTicketById(Long id) {
         Ticket ticket = ticketRepository.findById(id)
@@ -73,30 +65,6 @@ public class TicketServiceImpl implements TicketService {
                 .findByTitleContainingIgnoreCaseOrDescriptionContainingIgnoreCase(query, query, pageable)
                 .map(this::mapToDto);
     }
-
-//    @Override
-//    public Page<TicketDto> searchUserTickets(String query, Long userId, Pageable pageable) {
-//        return ticketRepository
-//                .findByUserIdAndTitleContainingIgnoreCaseOrUserIdAndDescriptionContainingIgnoreCase(
-//                        userId, query, userId, query, pageable)
-//                .map(this::mapToDto);
-//    }
-
-
-//    @Override
-//    public List<TicketDto> getTicketsByUserId(Long userId) {
-//        return ticketRepository.findByCreatedBy(userId).stream().map(this::mapToDto).collect(Collectors.toList());
-//    }
-
-
-
-//    @Override
-//    public List<TicketDto> searchTickets(String query) {
-//        return ticketRepository.findByTitleContainingIgnoreCaseOrDescriptionContainingIgnoreCase(query, query)
-//                .stream().map(this::mapToDto).collect(Collectors.toList());
-//    }
-
-
 
     @Override
     public TicketDto updateTicket(Long id, TicketDto ticketDto) {
