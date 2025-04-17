@@ -1,10 +1,14 @@
 package startup.backend.service;
 
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import startup.backend.dto.TicketDto;
 import startup.backend.entity.Ticket;
 import startup.backend.repository.TicketRepository;
+
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -37,9 +41,10 @@ public class TicketServiceImpl implements TicketService {
     }
 
     @Override
-    public List<TicketDto> getAllTickets() {
-        return ticketRepository.findAll().stream().map(this::mapToDto).collect(Collectors.toList());
+    public Page<TicketDto> getAllTickets(Pageable pageable) {
+        return ticketRepository.findAll(pageable).map(this::mapToDto);
     }
+
 
     @Override
     public TicketDto getTicketById(Long id) {
@@ -49,14 +54,16 @@ public class TicketServiceImpl implements TicketService {
     }
 
     @Override
-    public List<TicketDto> getTicketsByUserId(Long userId) {
-        return ticketRepository.findByCreatedBy(userId).stream().map(this::mapToDto).collect(Collectors.toList());
+    public Page<TicketDto> getTicketsByUserId(Long userId, Pageable pageable) {
+        return ticketRepository.findByCreatedBy(userId, pageable).map(this::mapToDto);
     }
 
     @Override
-    public List<TicketDto> searchTickets(String query) {
-        return ticketRepository.findByTitleContainingIgnoreCaseOrDescriptionContainingIgnoreCase(query, query)
-                .stream().map(this::mapToDto).collect(Collectors.toList());
+    public Page<TicketDto> searchTickets(String query, Pageable pageable) {
+
+        return ticketRepository
+                .findByTitleContainingIgnoreCaseOrDescriptionContainingIgnoreCase(query, query, pageable)
+                .map(this::mapToDto);
     }
 
     @Override
