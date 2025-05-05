@@ -1,5 +1,7 @@
 package startup.backend.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.web.multipart.MultipartFile;
 import startup.backend.dto.ApiResponse;
 import startup.backend.dto.LoginRequest;
 import startup.backend.dto.SignupRequest;
@@ -23,12 +25,22 @@ public class AuthController {
     private final AuthServiceImpl authServiceImpl;
 
     @PostMapping("/register")
-    public ResponseEntity<ApiResponse<Map<String, String>>> registerUser(@RequestBody SignupRequest signupRequest) {
+
+    public ResponseEntity<ApiResponse<Map<String, String>>> registerUser(
+            @RequestPart("data") String signupDataJson,
+            @RequestPart(value = "profileImage", required = false) MultipartFile profileImage
+    ) {
         try {
+            // Convert JSON string to SignupRequest object
+            ObjectMapper objectMapper = new ObjectMapper();
+            SignupRequest signupRequest = objectMapper.readValue(signupDataJson, SignupRequest.class);
+
+            // Set the image
+            signupRequest.setProfileImage(profileImage);
+
             ApiResponse<Map<String, String>> response = authServiceImpl.registerUser(signupRequest);
             return ResponseEntity.status(response.getCode()).body(response);
         } catch (Exception e) {
-            // Use the updated error handling for the response
             ApiResponse<Map<String, String>> errorResponse = ApiResponse.error(
                     MessageConstant.REGISTRATION_FAILED + e.getMessage(),
                     HttpStatus.INTERNAL_SERVER_ERROR.value()

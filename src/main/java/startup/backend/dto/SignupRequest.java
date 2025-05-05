@@ -1,4 +1,5 @@
 package startup.backend.dto;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 
@@ -7,9 +8,14 @@ import java.util.Set;
 import java.util.HashSet;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.NotEmpty;
+import lombok.NoArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import org.springframework.web.multipart.MultipartFile;
 
 @Data
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class SignupRequest {
     @NotNull(message = "FirstName is required")
     @NotEmpty(message = "FirstName cannot be empty")
@@ -33,6 +39,10 @@ public class SignupRequest {
     private String location;
     private LocalDateTime createdAt;
     private Set<String> role;
+
+    // ✅ Add profile image field
+    @JsonIgnore
+    private MultipartFile profileImage;
 
 
     public Set<String> getRole() {
