@@ -78,7 +78,6 @@ public class AuthServiceImpl implements AuthService {
         Set<Role> userRoles = resolveRoles(signupRequest);
         user.setRoles(userRoles);
 
-        // ✅ Set image
         try {
             if (signupRequest.getProfileImage() != null && !signupRequest.getProfileImage().isEmpty()) {
                 user.setProfileImage(signupRequest.getProfileImage().getBytes());

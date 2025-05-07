@@ -2,7 +2,6 @@ package startup.backend.dto;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-
 import java.time.LocalDateTime;
 import java.util.Set;
 import java.util.HashSet;
@@ -40,7 +39,7 @@ public class SignupRequest {
     private LocalDateTime createdAt;
     private Set<String> role;
 
-    // ✅ Add profile image field
+
     @JsonIgnore
     private MultipartFile profileImage;
 
