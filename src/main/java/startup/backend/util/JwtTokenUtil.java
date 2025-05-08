@@ -1,6 +1,8 @@
 package startup.backend.util;
 
+import jakarta.servlet.http.HttpServletRequest;
 import startup.backend.entity.Role;
+import startup.backend.entity.User;
 import startup.backend.exception.JwtTokenException;
 import startup.backend.exception.JwtTokenExpiredException;
 import startup.backend.exception.JwtTokenParseException;
@@ -10,6 +12,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import startup.backend.repository.UserRepository;
+
 import javax.crypto.SecretKey;
 import javax.annotation.PostConstruct;
 import java.nio.charset.StandardCharsets;
@@ -29,6 +33,11 @@ public class JwtTokenUtil {
     @Value("${jwt.expirationMs}")
     private Long expirationMs;
 
+    private final UserRepository userRepository;
+
+    public JwtTokenUtil(UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
     @PostConstruct
     public void init() {
         if (Objects.isNull(expirationMs) || expirationMs <= 0) {
@@ -54,7 +63,7 @@ public class JwtTokenUtil {
     }
 
     public Long getUserIdFromToken(String token) {
-        return extractAllClaims(token).get("userId", Long.class); // ✅ Extract userId claim
+        return extractAllClaims(token).get("id", Long.class); // ✅ Extract userId claim
     }
 
     public Date extractExpiration(String token) {
@@ -146,5 +155,30 @@ public class JwtTokenUtil {
 
     private void logError(String message, Exception e) {
         logger.error("{}: {}", message, e.getMessage(), e);
+    }
+
+    // Method to get the current user based on JWT token
+    public User getCurrentUser(HttpServletRequest request) {
+        String token = extractTokenFromRequest(request);  // Extract token from the request header
+        if (token == null || isTokenExpired(token)) {
+            throw new RuntimeException("Invalid or expired token");
+        }
+
+        Long userId = getUserIdFromToken(token);  // Extract user ID from token
+        if (userId == null) {
+            throw new RuntimeException("User ID is missing in the token");
+        }
+        return userRepository.findById(userId)  // Retrieve user by ID
+                .orElseThrow(() -> new RuntimeException("User not found"));
+    }
+
+    // Helper method to extract token from the Authorization header
+    private String extractTokenFromRequest(HttpServletRequest request) {
+        String header = request.getHeader("Authorization");
+        if (header != null && header.startsWith("Bearer ")) {
+            return header.substring(7);  // Extract the token (after "Bearer ")
+        }
+        return null;
+
     }
 }
