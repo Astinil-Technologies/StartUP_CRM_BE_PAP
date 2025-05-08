@@ -78,6 +78,14 @@ public class AuthServiceImpl implements AuthService {
         Set<Role> userRoles = resolveRoles(signupRequest);
         user.setRoles(userRoles);
 
+        try {
+            if (signupRequest.getProfileImage() != null && !signupRequest.getProfileImage().isEmpty()) {
+                user.setProfileImage(signupRequest.getProfileImage().getBytes());
+            }
+        } catch (IOException e) {
+            throw new CustomException("Failed to process profile image.");
+        }
+
         userRepository.save(user);
         log.info("User registered successfully: {}", user.getUsername());
 
