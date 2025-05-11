@@ -1,6 +1,7 @@
 package startup.backend.dto;
 
 import lombok.Data;
+import startup.backend.enums.Status;
 
 import java.time.LocalDateTime;
 import java.util.Set;
@@ -18,5 +19,6 @@ public class UserDto {
     private String bio;
     private String location;
     private LocalDateTime createdAt;
+    private Status status;
 }
 

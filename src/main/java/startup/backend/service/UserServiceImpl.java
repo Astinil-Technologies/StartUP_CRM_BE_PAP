@@ -1,9 +1,12 @@
 package startup.backend.service;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.server.ResponseStatusException;
 import startup.backend.dto.UserDto;
 import startup.backend.entity.User;
+import startup.backend.enums.Status;
 import startup.backend.exception.CustomException;
 import startup.backend.repository.UserRepository;
 import startup.backend.util.JwtTokenUtil;
@@ -156,6 +159,7 @@ import org.springframework.web.multipart.MultipartFile;
         userDto.setLocation(user.getLocation());
         userDto.setBio(user.getBio());
         userDto.setCreatedAt(user.getCreatedAt());
+        userDto.setStatus(user.getStatus());
         userDto.setRoles(user.getRoles().stream()
                 .map(role -> role.getName().name())
                 .collect(Collectors.toSet()));
@@ -197,5 +201,24 @@ import org.springframework.web.multipart.MultipartFile;
         userRepository.save(user);
 
         log.info("Profile image uploaded successfully for user with ID: {}", userId);
+    }
+
+    public UserDto updateUserStatus(String status) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // Convert string to Status enum
+        try {
+            String formattedStatus = status.replace(' ', '_').toUpperCase();
+            user.setStatus(Status.valueOf(formattedStatus));
+        } catch (IllegalArgumentException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid status value");
+        }
+
+        User updatedUser = userRepository.save(user);
+        return convertToDto(updatedUser);
     }
 }
