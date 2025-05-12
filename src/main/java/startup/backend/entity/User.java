@@ -9,6 +9,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import startup.backend.enums.Status;
 
 import java.time.LocalDateTime;
 import java.util.Set;
@@ -56,6 +57,7 @@ public class User {
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
+        this.status = Status.OFFLINE;
     }
 
 
@@ -69,6 +71,8 @@ public class User {
             inverseJoinColumns = @JoinColumn(name = "role_id"))
     private Set<Role> roles;
 
+    @Enumerated(EnumType.STRING)
+    private Status status;
 }
 
 
