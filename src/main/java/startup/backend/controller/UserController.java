@@ -113,4 +113,10 @@ public class UserController {
                     .body(ApiResponse.error("Error uploading profile image: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR.value()));
         }
     }
+
+    @PostMapping("/update-profile")
+    public ResponseEntity<UserDto> updateUser(@RequestBody UserDto userDto){
+        userDto = userServiceImpl.updateUser(userDto);
+        return  new ResponseEntity<UserDto>(userDto,HttpStatus.OK);
+    }
 }

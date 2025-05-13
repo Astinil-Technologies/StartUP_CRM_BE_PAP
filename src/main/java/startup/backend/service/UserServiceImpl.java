@@ -23,6 +23,7 @@ import startup.backend.entity.Role;
 import jakarta.transaction.Transactional;
 import startup.backend.repository.RefreshTokenRepository;
 import org.springframework.web.multipart.MultipartFile;
+import startup.backend.util.Utility;
 
 
 @Service
@@ -42,6 +43,8 @@ import org.springframework.web.multipart.MultipartFile;
                 .map(this::convertToDto)
                 .collect(Collectors.toList());
     }
+
+
     @Override
     public UserDto getUserById(Long id) {
         User user = userRepository.findById(id)
@@ -53,7 +56,7 @@ import org.springframework.web.multipart.MultipartFile;
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
         System.out.println(username);
-        User u= userRepository.findByUsername(username).orElseThrow(() -> new RuntimeException("User not found"));
+        User u = userRepository.findByUsername(username).orElseThrow(() -> new RuntimeException("User not found"));
         System.out.println(u);
         return convertToDto(u);
     }
@@ -68,12 +71,12 @@ import org.springframework.web.multipart.MultipartFile;
         userRepository.deleteById(id);
         log.info("User deleted  successfully with ID: {}", id);
     }
+
     @Override
     public UserCounts getUserCounts() {
         List<User> users = userRepository.findAll();
         long studentCount = 0;
         long adminCount = 0;
-
 
 
         for (User user : users) {
@@ -111,7 +114,7 @@ import org.springframework.web.multipart.MultipartFile;
         Optional<User> userOptional = userRepository.findByEmail(email);
         if (userOptional.isPresent()) {
             User user = userOptional.get();
-            String token = jwtUtil.generateToken(user.getUsername(),user.getUserId(), user.getRoles());
+            String token = jwtUtil.generateToken(user.getUsername(), user.getUserId(), user.getRoles());
             String resetLink = "http://localhost:4200/reset-password?token=" + token;
             emailService.sendSimpleMessage(email, MessageConstant.PASSWORD_RESET_REQ, MessageConstant.CLICK_THE_LINK_TO_RESET_PASSWORD + resetLink);
             log.info("Password reset link sent to {}", email);
@@ -152,19 +155,18 @@ import org.springframework.web.multipart.MultipartFile;
         userDto.setLastName(user.getLastName());
         userDto.setUsername(user.getUsername());
         userDto.setEmail(user.getEmail());
-        userDto.setMobile_no(user.getMobileNo());
+        userDto.setMobileNo(user.getMobileNo());
         userDto.setLocation(user.getLocation());
         userDto.setBio(user.getBio());
         userDto.setCreatedAt(user.getCreatedAt());
         userDto.setRoles(user.getRoles().stream()
                 .map(role -> role.getName().name())
                 .collect(Collectors.toSet()));
-        userDto.setProfileImage(user.getProfileImage() != null ? encodeImageToBase64(user.getProfileImage()) : null);
+        userDto.setProfileImage(user.getProfileImage() != null ? Utility.encodeImageToBase64(user.getProfileImage()) : null);
         return userDto;
     }
-        private String encodeImageToBase64(byte[] imageData) {
-            return Base64.getEncoder().encodeToString(imageData);
-    }
+
+
     public void uploadProfileImage(Long userId, MultipartFile file) throws IOException {
         if (file.isEmpty()) {
             throw new CustomException("File is empty. Please select a valid image.");
@@ -197,5 +199,27 @@ import org.springframework.web.multipart.MultipartFile;
         userRepository.save(user);
 
         log.info("Profile image uploaded successfully for user with ID: {}", userId);
+    }
+
+    @Override
+    public UserDto updateUser(UserDto userDto) {
+        String email = userDto.getEmail();
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new CustomException(MessageConstant.INVALID_TOKEN_OR_USER_NOT_FOUND));
+
+        user.setFirstName(userDto.getFirstName());
+        user.setLastName(userDto.getLastName());
+        user.setUsername(userDto.getUsername());
+        user.setEmail(userDto.getEmail());
+        user.setMobileNo(userDto.getMobileNo());
+        user.setBio(userDto.getBio());
+        user.setLocation(userDto.getLocation());
+
+        if (userDto.getProfileImage() != null) {
+            user.setProfileImage(Utility.decodeBase64ToImage(userDto.getProfileImage()));
+        }
+
+        user = userRepository.save(user);
+        return user.mapUserToDto(user);
     }
 }
