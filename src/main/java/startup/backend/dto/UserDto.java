@@ -4,6 +4,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import startup.backend.entity.User;
+import startup.backend.enums.Status;
+
 
 import java.time.LocalDateTime;
 import java.util.Set;
@@ -23,6 +25,7 @@ public class UserDto {
     private String bio;
     private String location;
     private LocalDateTime createdAt;
+    private Status status;
 
 }
 

@@ -1,0 +1,64 @@
+package startup.backend.service;
+
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import startup.backend.dto.ReminderDto;
+import startup.backend.entity.Reminder;
+import startup.backend.entity.User;
+import startup.backend.repository.ReminderRepository;
+
+import java.util.List;
+
+@Service
+@RequiredArgsConstructor
+public class ReminderServiceImpl implements ReminderService {
+
+    private final ReminderRepository reminderRepository;
+
+    @Override
+    public Reminder createReminder(ReminderDto dto, User user) {
+        Reminder reminder = Reminder.builder()
+                .title(dto.getTitle())
+                .dueDateTime(dto.getDueDateTime())
+                .notifyBeforeMinutes(dto.getNotifyBeforeMinutes())
+                .attachmentPath(dto.getAttachmentPath())
+                .user(user)
+                .build();
+        return reminderRepository.save(reminder);
+    }
+
+    @Override
+    public List<Reminder> getReminders(User user) {
+        return reminderRepository.findByUser(user);
+    }
+
+    @Override
+    public Reminder updateReminder(Long id, ReminderDto dto, User user) {
+        Reminder reminder = reminderRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Reminder not found"));
+
+        if (!reminder.getUser().getId().equals(user.getId())) {
+            throw new RuntimeException("Unauthorized");
+        }
+
+        reminder.setTitle(dto.getTitle());
+        reminder.setDueDateTime(dto.getDueDateTime());
+        reminder.setNotifyBeforeMinutes(dto.getNotifyBeforeMinutes());
+        reminder.setAttachmentPath(dto.getAttachmentPath());
+
+        return reminderRepository.save(reminder);
+    }
+
+    @Override
+    public void deleteReminder(Long id, User user) {
+        Reminder reminder = reminderRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Reminder not found"));
+
+        if (!reminder.getUser().getId().equals(user.getId())) {
+            throw new RuntimeException("Unauthorized");
+        }
+
+        reminderRepository.delete(reminder);
+    }
+}
+

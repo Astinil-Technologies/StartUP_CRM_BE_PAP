@@ -15,6 +15,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 @RequiredArgsConstructor
 @RestController
@@ -114,9 +115,17 @@ public class UserController {
         }
     }
 
+
     @PostMapping("/update-profile")
     public ResponseEntity<UserDto> updateUser(@RequestBody UserDto userDto){
         userDto = userServiceImpl.updateUser(userDto);
         return  new ResponseEntity<UserDto>(userDto,HttpStatus.OK);
+
+    @PutMapping("/status")
+    public ResponseEntity<String> updateUserStatus(@RequestBody Map<String, String> request) {
+        String statusStr = request.get("status");
+        userServiceImpl.updateUserStatus(statusStr);
+        return new ResponseEntity<>("Status updated successfully", HttpStatus.OK);
+
     }
 }

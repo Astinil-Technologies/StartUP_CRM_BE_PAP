@@ -11,6 +11,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import startup.backend.dto.UserDto;
 import startup.backend.util.Utility;
+import startup.backend.enums.Status;
+
 
 import java.time.LocalDateTime;
 import java.util.Set;
@@ -58,6 +60,7 @@ public class User {
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
+        this.status = Status.OFFLINE;
     }
 
 
@@ -85,6 +88,9 @@ public class User {
         return dto;
     }
 
+
+    @Enumerated(EnumType.STRING)
+    private Status status;
 }
 
 
