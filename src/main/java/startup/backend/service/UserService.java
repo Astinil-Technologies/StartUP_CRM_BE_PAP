@@ -14,4 +14,5 @@ public interface UserService {
     void resetPassword(String token, String newPassword);
     void uploadProfileImage(Long userId, MultipartFile file) throws IOException;
     List<UserDto> getAllUsers();
+    UserDto updateUser(UserDto userDto);
 }

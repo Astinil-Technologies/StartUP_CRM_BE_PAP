@@ -9,7 +9,10 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import startup.backend.dto.UserDto;
+import startup.backend.util.Utility;
 import startup.backend.enums.Status;
+
 
 import java.time.LocalDateTime;
 import java.util.Set;
@@ -70,6 +73,21 @@ public class User {
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "role_id"))
     private Set<Role> roles;
+
+    public UserDto mapUserToDto(User user) {
+        UserDto dto = new UserDto();
+        dto.setId(user.getId());
+        dto.setFirstName(user.getFirstName());
+        dto.setLastName(user.getLastName());
+        dto.setUsername(user.getUsername());
+        dto.setEmail(user.getEmail());
+        dto.setMobileNo(user.getMobileNo());
+        dto.setLocation(user.getLocation());
+        dto.setCreatedAt(user.getCreatedAt());
+        dto.setProfileImage(user.getProfileImage() != null ? Utility.encodeImageToBase64(user.getProfileImage()) : null);
+        return dto;
+    }
+
 
     @Enumerated(EnumType.STRING)
     private Status status;
