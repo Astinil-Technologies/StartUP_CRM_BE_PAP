@@ -227,7 +227,7 @@ import startup.backend.util.Utility;
         user = userRepository.save(user);
         return user.mapUserToDto(user);
     }
-}
+
 
     public UserDto updateUserStatus(String status) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
