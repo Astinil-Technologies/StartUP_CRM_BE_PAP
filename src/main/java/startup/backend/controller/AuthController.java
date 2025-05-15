@@ -25,22 +25,12 @@ public class AuthController {
     private final AuthServiceImpl authServiceImpl;
 
     @PostMapping("/register")
-
-    public ResponseEntity<ApiResponse<Map<String, String>>> registerUser(
-            @RequestPart("data") String signupDataJson,
-            @RequestPart(value = "profileImage", required = false) MultipartFile profileImage
-    ) {
+    public ResponseEntity<ApiResponse<Map<String, String>>> registerUser(@RequestBody SignupRequest signupRequest) {
         try {
-            // Convert JSON string to SignupRequest object
-            ObjectMapper objectMapper = new ObjectMapper();
-            SignupRequest signupRequest = objectMapper.readValue(signupDataJson, SignupRequest.class);
-
-            // Set the image
-            signupRequest.setProfileImage(profileImage);
-
             ApiResponse<Map<String, String>> response = authServiceImpl.registerUser(signupRequest);
             return ResponseEntity.status(response.getCode()).body(response);
         } catch (Exception e) {
+            // Use the updated error handling for the response
             ApiResponse<Map<String, String>> errorResponse = ApiResponse.error(
                     MessageConstant.REGISTRATION_FAILED + e.getMessage(),
                     HttpStatus.INTERNAL_SERVER_ERROR.value()
@@ -48,7 +38,6 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
         }
     }
-
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<Map<String, String>>> authenticateUser(@RequestBody LoginRequest loginRequest) {
         try {
