@@ -6,7 +6,7 @@ import startup.backend.dto.ReminderDto;
 import startup.backend.entity.Reminder;
 import startup.backend.entity.User;
 import startup.backend.repository.ReminderRepository;
-
+import java.io.File;
 import java.util.List;
 
 @Service
@@ -44,6 +44,12 @@ public class ReminderServiceImpl implements ReminderService {
         reminder.setTitle(dto.getTitle());
         reminder.setDueDateTime(dto.getDueDateTime());
         reminder.setNotifyBeforeMinutes(dto.getNotifyBeforeMinutes());
+        if (reminder.getAttachmentPath() != null && !reminder.getAttachmentPath().equals(dto.getAttachmentPath())) {
+            File oldFile = new File(reminder.getAttachmentPath());
+            if (oldFile.exists()) {
+                oldFile.delete();
+            }
+        }
         reminder.setAttachmentPath(dto.getAttachmentPath());
 
         return reminderRepository.save(reminder);
@@ -57,7 +63,12 @@ public class ReminderServiceImpl implements ReminderService {
         if (!reminder.getUser().getId().equals(user.getId())) {
             throw new RuntimeException("Unauthorized");
         }
-
+        if (reminder.getAttachmentPath() != null) {
+            File file = new File(reminder.getAttachmentPath());
+            if (file.exists()) {
+                file.delete();
+            }
+        }
         reminderRepository.delete(reminder);
     }
 }
