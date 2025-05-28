@@ -9,6 +9,9 @@ import startup.backend.dto.CheckOutDto;
 import startup.backend.dto.CheckOutStatusDto;
 import startup.backend.service.CheckOutService;
 
+import java.util.List;
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/checkout")
 @RequiredArgsConstructor
@@ -33,4 +36,19 @@ public class CheckOutController{
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         return (principal instanceof UserDetails) ? ((UserDetails) principal).getUsername() : principal.toString();
     }
+
+    @PostMapping("/checkin")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<CheckOutDto> checkIn() {
+        String userId = getCurrentUserId();
+        return ResponseEntity.ok(checkOutService.checkIn(userId));
+    }
+
+    @GetMapping("/weekly")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<List<Map<String, Object>>> getWeeklyAttendanceData() {
+        String userId = getCurrentUserId();
+        return ResponseEntity.ok(checkOutService.getWeeklyAttendanceData(userId));
+    }
+
 }
