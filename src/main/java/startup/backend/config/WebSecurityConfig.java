@@ -49,7 +49,7 @@ public class WebSecurityConfig {
                                 "/api/v1/users/request-password-reset",
                                 "/api/v1/users/reset-password",
                                 "/api/attachments/download/**" ).permitAll()
-                        .requestMatchers("/api/v1/users/**").hasAnyRole("USER", "ADMIN", "INSTRUCTOR")
+                        .requestMatchers("/api/v1/users/**", "api/checkout/**").hasAnyRole("USER", "ADMIN", "INSTRUCTOR")
                         .anyRequest().authenticated())
                 .oauth2Login(Customizer.withDefaults())
                 .userDetailsService(customUserDetailsService)
