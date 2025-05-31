@@ -19,22 +19,17 @@ import java.util.UUID;
 public class AttachmentController {
 
     private static final String UPLOAD_DIR = "uploads/reminders/";
-
     @PostMapping
     public ResponseEntity<String> uploadAttachment(@RequestParam("file") MultipartFile file) {
         try {
             String uploadDirPath = System.getProperty("user.dir") + "/uploads/reminders/";
             File uploadDir = new File(uploadDirPath);
             if (!uploadDir.exists()) uploadDir.mkdirs();
-
             String sanitizedFilename = file.getOriginalFilename().replaceAll("[^a-zA-Z0-9\\.\\-_]", "_");
             String filename = UUID.randomUUID() + "_" + sanitizedFilename;
             String filePath = uploadDirPath + filename;
-
             System.out.println("Uploading file to: " + filePath);
-
             file.transferTo(new File(filePath));
-
             return ResponseEntity.ok("/uploads/reminders/" + filename);
         } catch (IOException e) {
             e.printStackTrace();
@@ -48,12 +43,10 @@ public class AttachmentController {
             Path filePath = Paths.get(System.getProperty("user.dir"), UPLOAD_DIR, filename);
             System.out.println("Resolved file path: " + filePath);
             Resource resource = new UrlResource(filePath.toUri());
-
             if (!resource.exists()) {
                 System.out.println("File does not exist.");
                 return ResponseEntity.notFound().build();
             }
-
             return ResponseEntity.ok()
                     .contentType(MediaType.APPLICATION_OCTET_STREAM)
                     .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + resource.getFilename() + "\"")
