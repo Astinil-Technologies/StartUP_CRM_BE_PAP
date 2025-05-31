@@ -1,12 +1,13 @@
 package startup.backend.entity;
 
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
-        import lombok.AllArgsConstructor;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
+import startup.backend.enums.RecurringType;
 import java.time.LocalDateTime;
 
 @Entity
@@ -36,4 +37,15 @@ public class Reminder {
 
     @Column(name = "attachment_path")
     private String attachmentPath;
+
+    @JsonProperty("recurring")
+    @Column(name = "is_recurring")
+    private Boolean recurring;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "recurring_type")
+    private RecurringType recurringType;
+
+    @Column(name = "notified")
+    private Boolean notified = false;
 }

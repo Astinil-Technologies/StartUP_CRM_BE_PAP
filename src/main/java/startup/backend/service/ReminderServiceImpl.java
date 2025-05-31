@@ -7,6 +7,7 @@ import startup.backend.entity.Reminder;
 import startup.backend.entity.User;
 import startup.backend.repository.ReminderRepository;
 import java.io.File;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -23,6 +24,8 @@ public class ReminderServiceImpl implements ReminderService {
                 .notifyBeforeMinutes(dto.getNotifyBeforeMinutes())
                 .attachmentPath(dto.getAttachmentPath())
                 .user(user)
+                .recurring(dto.getRecurring())
+                .recurringType(dto.getRecurringType())
                 .build();
         return reminderRepository.save(reminder);
     }
@@ -51,7 +54,8 @@ public class ReminderServiceImpl implements ReminderService {
             }
         }
         reminder.setAttachmentPath(dto.getAttachmentPath());
-
+        reminder.setRecurring(dto.getRecurring());
+        reminder.setRecurringType(dto.getRecurringType());
         return reminderRepository.save(reminder);
     }
 
@@ -70,6 +74,24 @@ public class ReminderServiceImpl implements ReminderService {
             }
         }
         reminderRepository.delete(reminder);
+    }
+    public void handleRecurringReminder(Reminder reminder) {
+        if (!Boolean.TRUE.equals(reminder.getRecurring())) return;
+        LocalDateTime nextDueDate = switch (reminder.getRecurringType()) {
+            case DAILY -> reminder.getDueDateTime().plusDays(1);
+            case WEEKLY -> reminder.getDueDateTime().plusWeeks(1);
+            case MONTHLY -> reminder.getDueDateTime().plusMonths(1);
+        };
+        Reminder nextReminder = Reminder.builder()
+                .title(reminder.getTitle())
+                .dueDateTime(nextDueDate)
+                .notifyBeforeMinutes(reminder.getNotifyBeforeMinutes())
+                .attachmentPath(reminder.getAttachmentPath())
+                .user(reminder.getUser())
+                .recurring(true)
+                .recurringType(reminder.getRecurringType())
+                .build();
+        reminderRepository.save(nextReminder);
     }
 }
 
