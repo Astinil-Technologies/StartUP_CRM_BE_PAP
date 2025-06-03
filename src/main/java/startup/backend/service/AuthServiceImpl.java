@@ -272,4 +272,18 @@ public class AuthServiceImpl implements AuthService {
             return byteArrayOutputStream.toByteArray();
         }
     }
+
+    @Override
+    public ApiResponse<Map<String, String>> logoutUser(LogoutRequest logoutRequest) {
+        String token = logoutRequest.getToken();
+
+        if (token == null || token.isEmpty()) {
+            throw new CustomException("Token is required for logout", HttpStatus.BAD_REQUEST, "INVALID_LOGOUT_REQUEST");
+        }
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "Logout successful");
+
+        return ApiResponse.success("User logged out successfully", response, HttpStatus.OK.value());
+    }
+
 }
