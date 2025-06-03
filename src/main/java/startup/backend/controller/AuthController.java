@@ -1,9 +1,12 @@
 package startup.backend.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.multipart.MultipartFile;
 import startup.backend.dto.ApiResponse;
 import startup.backend.dto.LoginRequest;
+import startup.backend.dto.LogoutRequest;
 import startup.backend.dto.SignupRequest;
 import startup.backend.exception.CustomException;
 import startup.backend.exception.InvalidCredentialsException;
@@ -23,6 +26,8 @@ import java.util.Map;
 public class AuthController {
 
     private final AuthServiceImpl authServiceImpl;
+
+    private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
 
     @PostMapping("/register")
     public ResponseEntity<ApiResponse<Map<String, String>>> registerUser(@RequestBody SignupRequest signupRequest) {
@@ -80,4 +85,28 @@ public class AuthController {
         }
         return authServiceImpl.authenticateWithGoogle(googleToken);
     }
+
+    @PostMapping("/logout")
+    public ResponseEntity<ApiResponse<Map<String, String>>> logoutUser(@RequestBody LogoutRequest logoutRequest) {
+        try {
+            ApiResponse<Map<String, String>> response = authServiceImpl.logoutUser(logoutRequest);
+            logger.info("Logout Successfully ");
+            return ResponseEntity.status(HttpStatus.OK).body(response);
+        } catch (CustomException e) {
+            logger.error("Custom Exception: {}", e.getMessage());
+            ApiResponse<Map<String, String>> errorResponse = ApiResponse.error(
+                    e.getMessage(),
+                    e.getStatus().value()
+            );
+            return ResponseEntity.status(e.getStatus()).body(errorResponse);
+        } catch (Exception e) {
+            logger.error("Unexpected Exception: {}", e.getMessage());
+            ApiResponse<Map<String, String>> errorResponse = ApiResponse.error(
+                    "Logout failed: " + e.getMessage(),
+                    HttpStatus.INTERNAL_SERVER_ERROR.value()
+            );
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+        }
+    }
+
 }
