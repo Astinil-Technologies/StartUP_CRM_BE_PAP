@@ -144,6 +144,8 @@ public class AuthServiceImpl implements AuthService {
             );
 
             User user = userRepository.findByUsername(authentication.getName())
+                    .or(() -> userRepository.findByEmail(authentication.getName()))
+                    .or(() -> userRepository.findByMobileNo(authentication.getName()))
                     .orElseThrow(() -> new CustomException(MessageConstant.INVALID_USERNAME_OR_PASSWORD, HttpStatus.NOT_FOUND, "USER_NOT_FOUND"));
 
             Map<String, String> tokens = generateTokens(user);
