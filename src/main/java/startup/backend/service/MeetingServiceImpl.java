@@ -54,16 +54,16 @@ public class MeetingServiceImpl implements MeetingService {
     public List<MeetingDto> getUpcomingMeetings(Long userId) {
         return meetingRepository.findAll().stream()
                 .filter(m -> m.getStartTime().isAfter(LocalDateTime.now()))
-                .filter(m -> m.getParticipants().stream().anyMatch(u -> u.getId().equals(userId)))
+                .filter(m -> m.getParticipants().stream().anyMatch(u -> u.getId().equals(userId))||
+                                    m.getHost().getId().equals(userId))
                 .map(this::toDto)
                 .collect(Collectors.toList());
     }
 
-    @Override
+    @  Override
     public List<MeetingDto> getPastMeetings(Long userId) {
         return meetingRepository.findAll().stream()
-                .filter(m -> m.getEndTime().isBefore(LocalDateTime.now()))
-                .filter(m -> m.getParticipants().stream().anyMatch(u -> u.getId().equals(userId)))
+                .filter(m -> m.getStartTime().isAfter(LocalDateTime.now()))
                 .map(this::toDto)
                 .collect(Collectors.toList());
     }

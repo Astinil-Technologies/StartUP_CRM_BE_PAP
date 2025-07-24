@@ -1,11 +1,11 @@
 package startup.backend.controller;
 
 
-import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import startup.backend.dto.MeetingDto;
+import startup.backend.entity.Meeting;
 import startup.backend.service.MeetingService;
 
 import java.util.List;
@@ -66,5 +66,6 @@ public class MeetingController {
     public ResponseEntity<Void> kickUser(@PathVariable String meetingId, @RequestParam Long userId) {
         meetingService.kickUser(meetingId, userId);
         return ResponseEntity.ok().build();
+
     }
 }
