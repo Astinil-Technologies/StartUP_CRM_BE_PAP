@@ -48,7 +48,8 @@ public class WebSecurityConfig {
                         .requestMatchers("/auth/**",
                                 "/api/v1/users/request-password-reset",
                                 "/api/v1/users/reset-password",
-                                "/api/attachments/download/**" ).permitAll()
+                                "/api/attachments/download/**" ,
+                                "/ws/**").permitAll()
                         .requestMatchers("/api/v1/users/**", "api/checkout/**").hasAnyRole("USER", "ADMIN", "INSTRUCTOR")
                         .anyRequest().authenticated())
                 .oauth2Login(Customizer.withDefaults())
