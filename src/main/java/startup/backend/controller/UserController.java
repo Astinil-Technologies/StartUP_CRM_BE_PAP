@@ -48,7 +48,7 @@ public class UserController {
     }
 
     @GetMapping
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADMIN', 'ROLE_INSTRUCTOR')")
     public ResponseEntity<ApiResponse<List<UserDto>>> getAllUsers() {
         try {
             List<UserDto> users = userServiceImpl.getAllUsers();
