@@ -45,10 +45,14 @@ public class WebSecurityConfig {
                 .cors(Customizer.withDefaults())
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(req -> req
-                        .requestMatchers("/auth/**",
+                        .requestMatchers(
+                                "/auth/**",
+                                "/ws/**",
+                                "/topic/**",
+                                "/app/**",
                                 "/api/v1/users/request-password-reset",
                                 "/api/v1/users/reset-password",
-                                "/api/attachments/download/**" ).permitAll()
+                                "/api/attachments/download/**").permitAll()
                         .requestMatchers("/api/v1/users/**", "api/checkout/**").hasAnyRole("USER", "ADMIN", "INSTRUCTOR")
                         .anyRequest().authenticated())
                 .oauth2Login(Customizer.withDefaults())
