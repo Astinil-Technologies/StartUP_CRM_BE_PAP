@@ -46,6 +46,8 @@ public class WebSecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(req -> req
                         .requestMatchers("/auth/**",
+                                "/topic/**",
+                                "/app/**",
                                 "/api/v1/users/request-password-reset",
                                 "/api/v1/users/reset-password",
                                 "/api/attachments/download/**" ,
